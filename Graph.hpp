@@ -3,80 +3,329 @@
 
 
 #include <stdio.h>
-#include <fstream>
-#include <algorithm>
 #include <iostream>
+#include <fstream>
+#include <map>
+#include <string>
+#include <set>
 #include <vector>
+#include <cstdlib>
+#include <boost/algorithm/string.hpp>
+#include <boost/bimap.hpp>
 
 class Graph
 {
 
-private:
+public:
 	unsigned long long num_vertex;
 	unsigned long long num_edge;
 
-	std::vector<unsigned long long> R;
-	std::vector<unsigned long long> C;
+	unsigned long long *R;
+	unsigned long long *C;
+	unsigned long long *F;
 
-public:
-	Graph(char graph_path[])
+	boost::bimap<unsigned,std::string> IDs;
+
+	Graph()
 	{
-		// Open the file:
-		std::ifstream fin(graph_path);
 
-		// Declare variables:
-		unsigned long long columns, rows, entries;
+	}
 
-		// Ignore headers and comments:
-		while (fin.peek() == '%') fin.ignore(2048, '\n');
-
-		// Read defining parameters:
-		fin >> columns >> rows >> entries;
-
-		this->num_vertex = columns;
-		this->num_edge = entries;
-
-		unsigned long long edge;
-
-		this->R.push_back(0);
-
-		unsigned long long prev_node = 1, cur_node = 0;
-
-		for(unsigned long long i = 0; i <= entries; i++)
+	void parse_edgelist(char *file)
 		{
-			fin >> cur_node;
-			fin >> edge;
-			edge--;
-			this->C.push_back(edge);
-			if(prev_node != cur_node)
+			std::set<std::string> vertices;
+
+			//Scan the file
+			std::ifstream edgelist(file,std::ifstream::in);
+			std::string line;
+			
+			if(!edgelist.good())
 			{
-				this->R.push_back(i);
-				prev_node = cur_node;
+				std::cerr << "Error opening graph file." << std::endl;
+				exit(-1);
+			}
+
+			std::vector<std::string> from;
+			std::vector<std::string> to;
+			while(std::getline(edgelist,line))
+			{
+				if((line[0] == '%') || (line[0] == '#')) //Allow comments
+				{
+					continue;
+				}
+
+				std::vector<std::string> splitvec;
+				boost::split(splitvec,line,boost::is_any_of(" \t"),boost::token_compress_on);
+			
+				if(splitvec.size() != 2)
+				{
+					std::cerr << "Warning: Found a row that does not represent an edge or comment." << std::endl;
+					std::cerr << "Row in question: " << std::endl;	
+					for(unsigned i=0; i<splitvec.size(); i++)
+					{
+						std::cout << splitvec[i] << std::endl;
+					}
+					exit(-1);
+				}
+
+				for(unsigned i=0; i<splitvec.size(); i++)
+				{
+					vertices.insert(splitvec[i]);
+				}
+
+				from.push_back(splitvec[0]);
+				to.push_back(splitvec[1]);
+			}
+
+			edgelist.close();
+
+			this->num_vertex = vertices.size();
+			this->num_edge = from.size();
+
+			unsigned id = 0;
+			for(std::set<std::string>::iterator i = vertices.begin(), e = vertices.end(); i!=e; ++i)
+			{
+				this->IDs.insert(boost::bimap<unsigned,std::string>::value_type(id++,*i));
+			}
+
+			this->R = new unsigned long long int[this->num_vertex+1];
+			this->F = new unsigned long long int[2*this->num_edge];
+			this->C = new unsigned long long int[2*this->num_edge];
+
+			for(unsigned long long i=0; i<this->num_edge; i++)
+			{
+				boost::bimap<unsigned,std::string>::right_map::iterator itf = this->IDs.right.find(from[i]);
+				boost::bimap<unsigned,std::string>::right_map::iterator itc = this->IDs.right.find(to[i]);
+
+				if((itf == this->IDs.right.end()) || (itc == this->IDs.right.end()))
+				{
+					std::cerr << "Error parsing graph file." << std::endl;
+					exit(-1);
+				}
+				else
+				{
+					if(itf->second == itc->second)
+					{
+						std::cerr << "Error: self edge! " << itf->second << " -> " << itc->second << std::endl;
+						std::cerr << "Aborting. Graphs with self-edges aren't supported." << std::endl;
+						exit(-1);
+					}
+					this->F[2*i] = itf->second;
+					this->C[2*i] = itc->second;
+					//Treat undirected edges as two directed edges
+					this->F[(2*i)+1] = itc->second;
+					this->C[(2*i)+1] = itf->second;
+				}
+			}
+
+			//Sort edges by F
+			std::vector< std::pair<int,int> >edges;
+			for(unsigned long long i=0; i<2*this->num_edge; i++)
+			{
+				edges.push_back(std::make_pair(this->F[i],this->C[i]));
+			}
+			std::sort(edges.begin(),edges.end()); //By default, pair sorts with precedence to it's first member, which is precisely what we want.
+			this->R[0] = 0;
+			unsigned long long last_node = 0;
+			for(unsigned long long i=0; i<2*this->num_edge; i++)
+			{
+				this->F[i] = edges[i].first;
+				this->C[i] = edges[i].second;
+				while(edges[i].first > last_node)
+				{
+					this->R[++last_node] = i;
+				}
+			}
+			this->R[this->num_vertex] = 2*this->num_edge;
+			edges.clear();
+		}
+
+		void print_R()
+		{
+			if(R == NULL)
+			{
+				std::cerr << "Error: Attempt to prunsigned long longCSR of a graph that has not been parsed." << std::endl;
+			}
+
+			std::cout << "R = [";
+			for(unsigned long long i=0; i<(num_vertex+1); i++)
+			{
+				if(i == this->num_vertex)
+				{
+					std::cout << R[i] << "]" << std::endl;
+				}
+				else
+				{
+					std::cout << R[i] << ",";
+				}
 			}
 		}
 
-		fin.close();
-	}
+		void print_number_of_isolated_vertices()
+		{
+			if(R == NULL)
+			{
+				std::cerr << "Error: Attempt to prunsigned long longCSR of a graph that has not been parsed." << std::endl;
+			}
 
-	unsigned long long getNumVertex()
-	{
-		return this->num_vertex;
-	}
+			unsigned long long isolated = 0;
+			for(unsigned long long i=0; i<num_vertex; i++)
+			{
+				unsigned long long degree = R[i+1]-R[i];
+				if(degree == 0)
+				{
+					isolated++;
+				}
+			}
 
-	unsigned long long getNumEdge()
-	{
-		return this->num_edge;
-	}
+			std::cout << "Number of isolated vertices: " << isolated << std::endl;
+		}
 
-	std::vector<unsigned long long> getR()
-	{
-		return this->R;
-	}
+		void print_CSR()
+		{
+			if((R == NULL) || (C == NULL) || (F == NULL))
+			{
+				std::cerr << "Error: Attempt to prunsigned long longCSR of a graph that has not been parsed." << std::endl;
+				exit(-1);
+			}
 
-	std::vector<unsigned long long> getC()
-	{
-		return this->C;
-	}
+			std::cout << "R = [";
+			for(unsigned long long i=0; i<(num_vertex+1); i++)
+			{
+				if(i == num_vertex)
+				{
+					std::cout << R[i] << "]" << std::endl;
+				}
+				else
+				{
+					std::cout << R[i] << ",";
+				}
+			}
+
+			std::cout << "C = [";
+			for(unsigned long long i=0; i<(2*num_edge); i++)
+			{
+				if(i == ((2*num_edge)-1))
+				{
+					std::cout << C[i] << "]" << std::endl;
+				}
+				else
+				{
+					std::cout << C[i] << ",";
+				}
+			}	
+			
+			std::cout << "F = [";
+			for(unsigned long long i=0; i<(2*num_edge); i++)
+			{
+				if(i == ((2*num_edge)-1))
+				{
+					std::cout << F[i] << "]" << std::endl;
+				}
+				else
+				{
+					std::cout << F[i] << ",";
+				}
+			}	
+		}
+
+		void print_high_degree_vertices()
+		{
+			if(R == NULL)
+			{
+				std::cerr << "Error: Attempt to search adjacency list of graph that has not been parsed." << std::endl;
+				exit(-1);
+			}
+
+			unsigned long long max_degree = 0;
+			for(unsigned long long i=0; i<num_vertex; i++)
+			{
+				unsigned long long degree = R[i+1]-R[i];
+				if(degree > max_degree)
+				{
+					max_degree = degree;
+					std::cout << "Max degree: " << degree << std::endl;
+				}
+			}
+		}
+
+		void print_adjacency_list()
+		{
+			if(R == NULL)
+			{
+				std::cerr << "Error: Attempt to prunsigned long longadjacency list of graph that has not been parsed." << std::endl;
+				exit(-1);
+			}
+
+			std::cout << "Edge lists for each vertex: " << std::endl;
+
+			for(unsigned long long i=0; i<num_vertex; i++)
+			{
+				unsigned long long begin = R[i];
+				unsigned long long end = R[i+1];
+				boost::bimap<unsigned,std::string>::left_map::iterator itr = IDs.left.find(i);
+				for(unsigned long long j=begin; j<end; j++)
+				{
+					boost::bimap<unsigned,std::string>::left_map::iterator itc = IDs.left.find(C[j]);
+					if(j==begin)
+					{
+						std::cout << itr->second << " | " << itc->second;
+					}
+					else
+					{
+						std::cout << ", " << itc->second;
+					}
+				}
+				if(begin == end) //Single, unconnected node
+				{
+					std::cout << itr->second << " | ";
+				}
+				std::cout << std::endl;
+			}
+		}
+
+		void print_numerical_edge_file(char *outfile)
+		{
+			std::ofstream ofs(outfile, std::ios::out);
+			if(!ofs.good())
+			{
+				std::cerr << "Error opening output file." << std::endl;
+				exit(-1);
+			}	
+			for(unsigned long long i=0; i<2*num_edge; i++)
+			{
+				if(F[i] < C[i])
+				{
+					ofs << F[i] << " " << C[i] << std::endl;
+				}
+			}
+		}
+
+		void print_BC_scores(const std::vector<float> bc, char *outfile)
+		{
+			std::ofstream ofs;
+			if(outfile != NULL)
+			{
+				ofs.open(outfile, std::ios::out);
+			}
+			std::ostream &os = (outfile ? ofs : std::cout);
+			for(unsigned long long i=0; i<num_vertex; i++)
+			{
+				boost::bimap<unsigned,std::string>::left_map::iterator it = IDs.left.find(i);
+				if(it != IDs.left.end())
+				{
+					os << it->second << " " << bc[i] << std::endl;
+				}
+				else
+				{
+					//Just prunsigned long longthe numeric id
+					os << i << " " << bc[i] << std::endl;
+				}
+			}
+		}
+
+
+
 };
 
 #endif // __GRAPH_H__

@@ -67,6 +67,16 @@ public:
 	{
 		return this->num_edge;
 	}
+
+	std::vector<unsigned long long> getR()
+	{
+		return this->R;
+	}
+
+	std::vector<unsigned long long> getC()
+	{
+		return this->C;
+	}
 };
 
 #endif // __GRAPH_H__

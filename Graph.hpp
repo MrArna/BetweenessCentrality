@@ -17,12 +17,12 @@ class Graph
 {
 
 public:
-	unsigned long long num_vertex;
-	unsigned long long num_edge;
+	unsigned num_vertex;
+	unsigned num_edge;
 
-	unsigned long long *R;
-	unsigned long long *C;
-	unsigned long long *F;
+	unsigned *R;
+	unsigned *C;
+	unsigned *F;
 
 	boost::bimap<unsigned,std::string> IDs;
 
@@ -88,11 +88,11 @@ public:
 				this->IDs.insert(boost::bimap<unsigned,std::string>::value_type(id++,*i));
 			}
 
-			this->R = new unsigned long long int[this->num_vertex+1];
-			this->F = new unsigned long long int[2*this->num_edge];
-			this->C = new unsigned long long int[2*this->num_edge];
+			this->R = new unsigned int[this->num_vertex+1];
+			this->F = new unsigned int[2*this->num_edge];
+			this->C = new unsigned int[2*this->num_edge];
 
-			for(unsigned long long i=0; i<this->num_edge; i++)
+			for(unsigned i=0; i<this->num_edge; i++)
 			{
 				boost::bimap<unsigned,std::string>::right_map::iterator itf = this->IDs.right.find(from[i]);
 				boost::bimap<unsigned,std::string>::right_map::iterator itc = this->IDs.right.find(to[i]);
@@ -120,14 +120,14 @@ public:
 
 			//Sort edges by F
 			std::vector< std::pair<int,int> >edges;
-			for(unsigned long long i=0; i<2*this->num_edge; i++)
+			for(unsigned i=0; i<2*this->num_edge; i++)
 			{
 				edges.push_back(std::make_pair(this->F[i],this->C[i]));
 			}
 			std::sort(edges.begin(),edges.end()); //By default, pair sorts with precedence to it's first member, which is precisely what we want.
 			this->R[0] = 0;
-			unsigned long long last_node = 0;
-			for(unsigned long long i=0; i<2*this->num_edge; i++)
+			unsigned last_node = 0;
+			for(unsigned i=0; i<2*this->num_edge; i++)
 			{
 				this->F[i] = edges[i].first;
 				this->C[i] = edges[i].second;
@@ -144,11 +144,11 @@ public:
 		{
 			if(R == NULL)
 			{
-				std::cerr << "Error: Attempt to prunsigned long longCSR of a graph that has not been parsed." << std::endl;
+				std::cerr << "Error: Attempt to prunsignedCSR of a graph that has not been parsed." << std::endl;
 			}
 
 			std::cout << "R = [";
-			for(unsigned long long i=0; i<(num_vertex+1); i++)
+			for(unsigned i=0; i<(num_vertex+1); i++)
 			{
 				if(i == this->num_vertex)
 				{
@@ -165,13 +165,13 @@ public:
 		{
 			if(R == NULL)
 			{
-				std::cerr << "Error: Attempt to prunsigned long longCSR of a graph that has not been parsed." << std::endl;
+				std::cerr << "Error: Attempt to prunsignedCSR of a graph that has not been parsed." << std::endl;
 			}
 
-			unsigned long long isolated = 0;
-			for(unsigned long long i=0; i<num_vertex; i++)
+			unsigned isolated = 0;
+			for(unsigned i=0; i<num_vertex; i++)
 			{
-				unsigned long long degree = R[i+1]-R[i];
+				unsigned degree = R[i+1]-R[i];
 				if(degree == 0)
 				{
 					isolated++;
@@ -185,12 +185,12 @@ public:
 		{
 			if((R == NULL) || (C == NULL) || (F == NULL))
 			{
-				std::cerr << "Error: Attempt to prunsigned long longCSR of a graph that has not been parsed." << std::endl;
+				std::cerr << "Error: Attempt to prunsignedCSR of a graph that has not been parsed." << std::endl;
 				exit(-1);
 			}
 
 			std::cout << "R = [";
-			for(unsigned long long i=0; i<(num_vertex+1); i++)
+			for(unsigned i=0; i<(num_vertex+1); i++)
 			{
 				if(i == num_vertex)
 				{
@@ -203,7 +203,7 @@ public:
 			}
 
 			std::cout << "C = [";
-			for(unsigned long long i=0; i<(2*num_edge); i++)
+			for(unsigned i=0; i<(2*num_edge); i++)
 			{
 				if(i == ((2*num_edge)-1))
 				{
@@ -216,7 +216,7 @@ public:
 			}	
 			
 			std::cout << "F = [";
-			for(unsigned long long i=0; i<(2*num_edge); i++)
+			for(unsigned i=0; i<(2*num_edge); i++)
 			{
 				if(i == ((2*num_edge)-1))
 				{
@@ -237,10 +237,10 @@ public:
 				exit(-1);
 			}
 
-			unsigned long long max_degree = 0;
-			for(unsigned long long i=0; i<num_vertex; i++)
+			unsigned max_degree = 0;
+			for(unsigned i=0; i<num_vertex; i++)
 			{
-				unsigned long long degree = R[i+1]-R[i];
+				unsigned degree = R[i+1]-R[i];
 				if(degree > max_degree)
 				{
 					max_degree = degree;
@@ -253,18 +253,18 @@ public:
 		{
 			if(R == NULL)
 			{
-				std::cerr << "Error: Attempt to prunsigned long longadjacency list of graph that has not been parsed." << std::endl;
+				std::cerr << "Error: Attempt to prunsignedadjacency list of graph that has not been parsed." << std::endl;
 				exit(-1);
 			}
 
 			std::cout << "Edge lists for each vertex: " << std::endl;
 
-			for(unsigned long long i=0; i<num_vertex; i++)
+			for(unsigned i=0; i<num_vertex; i++)
 			{
-				unsigned long long begin = R[i];
-				unsigned long long end = R[i+1];
+				unsigned begin = R[i];
+				unsigned end = R[i+1];
 				boost::bimap<unsigned,std::string>::left_map::iterator itr = IDs.left.find(i);
-				for(unsigned long long j=begin; j<end; j++)
+				for(unsigned j=begin; j<end; j++)
 				{
 					boost::bimap<unsigned,std::string>::left_map::iterator itc = IDs.left.find(C[j]);
 					if(j==begin)
@@ -292,7 +292,7 @@ public:
 				std::cerr << "Error opening output file." << std::endl;
 				exit(-1);
 			}	
-			for(unsigned long long i=0; i<2*num_edge; i++)
+			for(unsigned i=0; i<2*num_edge; i++)
 			{
 				if(F[i] < C[i])
 				{
@@ -309,7 +309,7 @@ public:
 				ofs.open(outfile, std::ios::out);
 			}
 			std::ostream &os = (outfile ? ofs : std::cout);
-			for(unsigned long long i=0; i<num_vertex; i++)
+			for(unsigned i=0; i<num_vertex; i++)
 			{
 				boost::bimap<unsigned,std::string>::left_map::iterator it = IDs.left.find(i);
 				if(it != IDs.left.end())
@@ -318,7 +318,7 @@ public:
 				}
 				else
 				{
-					//Just prunsigned long longthe numeric id
+					//Just prunsignedthe numeric id
 					os << i << " " << bc[i] << std::endl;
 				}
 			}

@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 				Q.pop();
 				S.push(v);
 
-				#pragma omp parallel for
+				//#pragma omp parallel for
 				for(int j=g.R[v]; j<g.R[v+1]; j++)
 				{
 					int w = g.C[j];
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
 						sigma[w] += sigma[v];
 					}
 				}
-				#pragma omp barrier
+				//#pragma omp barrier
 			}
 			std::cout << "-------------> Breadth first completed for source " << k <<  "<----------" << std::endl;
 			for(unsigned i = 0; i < g.num_vertex; i++)
@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
 			{
 				int w = S.top();
 				S.pop();
-				#pragma omp parallel for
+				//#pragma omp parallel for
 				for(int j=g.R[w]; j<g.R[w+1]; j++)
 				{
 					#pragma omp critical(compareAndSwap)
@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
 						}
 					}
 				}
-				#pragma omp barrier	
+				//#pragma omp barrier	
 				
 				if(w != i)
 				{
@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
 				}
 			}
 		}
-		#pragma omp barrier
+		//#pragma omp barrier
 		//#pragma omp parallel for
 		for(int i=0; i<g.num_vertex; i++)
 		{

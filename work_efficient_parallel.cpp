@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
 		for (unsigned i = 0; i < g.num_vertex; i++)
 		{
 			//std::cout << "sigma[" << i << "] = " << sigma[i] << std::endl; 
-			bc[source] += i == source ? 0 : delta[i];
+			bc[i] += i == source ? 0 : delta[i];
 		}
 	}
 	#pragma omp barrier

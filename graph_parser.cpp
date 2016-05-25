@@ -27,9 +27,9 @@ int main(int argc, char *argv[])
 	}
 
 
-	Graph *graph = new Graph(argv[1]);
+	//Graph *graph = new Graph(argv[1]);
 
-	std::cout << graph->getNumVertex(); << std::endl;  
+	//std::cout << graph->getNumVertex(); << std::endl;  
 
 
 	return 1;

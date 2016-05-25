@@ -131,14 +131,14 @@ int main(int argc, char *argv[])
 				//#pragma omp parallel for
 				for(int j=g.R[w]; j<g.R[w+1]; j++)
 				{
-					#pragma omp critical(compareAndSwap)
-					{
+					//#pragma omp critical(compareAndSwap)
+					//{
 						int v = g.C[j];
 						if(d[v] == (d[w] - 1))
 						{
 							delta[v] += (sigma[v]/(float)sigma[w])*(1+delta[w]);
 						}
-					}
+					//}
 				}
 				//#pragma omp barrier	
 				

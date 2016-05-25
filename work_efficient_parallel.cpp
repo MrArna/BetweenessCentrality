@@ -150,13 +150,14 @@ int main(int argc, char *argv[])
 					if(d[v] == (d[w]+1))
 					{
 						dsw += (sw/(float)sigma[v])*(1+delta[v]);
+						std::cout << "[thread " << omp_get_thread_num() << "] dsw = " << dsw << " \tv = " << v << " \tw = " << w << std::endl;
 						//std::cout << "d[v] = " << d[v] << " || d[w] = " << d[w] << " || sigma[v] = " << sigma[v] << std::endl; 
 					}
 				}
 				delta[w] = dsw;
-
 			}
 			#pragma omp barrier
+			std::cout << "---------- new depth ----------" << std::endl;
 			depth--;
 		}
 

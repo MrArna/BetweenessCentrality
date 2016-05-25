@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
 		std::cout << "-------------> Breadth first completed for source " << source <<  "<----------" << std::endl;
 		for(unsigned i = 0; i < g.num_vertex; i++)
 		{
-				std::cout << "sigma[" << i << "] = "  << sigma[i]  << " || delta[" << i << "] = "  << delta[i]  << std::endl;
+				std::cout << "sigma[" << i << "] = "  << sigma[i]  << " || d[" << i << "] = "  << d[i]  << std::endl;
 		}	
 		//Dependency accumulation
 		while(depth > 0)
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
 			{
 				unsigned w = S[tid];
 				float dsw = 0.0f;
-				unsigned sw = sigma[w];
+				unsigned sw = sigma.at(w);
 				for(unsigned j=g.R[w]; j<g.R[w+1]; j++) //for each neighbor of v
 				{	
 					unsigned v = g.C[j];

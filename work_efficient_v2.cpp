@@ -136,14 +136,14 @@ int main(int argc, char *argv[])
 				std::cout << "sigma[" << i << "] = "  << sigma[i]  << " || delta[" << i << "] = "  << delta[i]  << std::endl;
 		}	
 		//Dependency accumulation
-		/*while(depth > 0)
+		while(depth > 0)
 		{	
 			#pragma omp parallel for shared(d) shared(delta)
 			for(unsigned tid = ends[depth]; tid < ends[depth+1]; tid++)
 			{
 				unsigned w = S[tid];
 				float dsw = 0.0f;
-				unsigned sw = sigma.at(w);
+				unsigned sw = sigma[w];
 				for(unsigned j=g.R[w]; j<g.R[w+1]; j++) //for each neighbor of v
 				{	
 					unsigned v = g.C[j];
@@ -169,30 +169,7 @@ int main(int argc, char *argv[])
 		{
 			//std::cout << "sigma[" << i << "] = " << sigma[i] << std::endl; 
 			bc[source] += i == source ? 0 : delta[i];
-		}*/
-
-		while(!S.empty())
-		{
-			unsigned w = S.back();
-			S.pop_back();
-			for(unsigned j=g.R[w]; j<g.R[w+1]; j++)
-			{	
-				unsigned v = g.C[j];
-				if(d[v] == (d[w] - 1))
-				{
-					delta[v] += (sigma[v]/(float)sigma[w])*(1+delta[w]);
-				}
-			}
-			if(w != source)
-			{
-				bc[w] += delta[w];
-			}
 		}
-		#pragma omp barrier
-		ends.clear();
-		S.clear();
-		Q_curr.clear();
-		delta.clear();
 	}
 	#pragma omp barrier
 	for(unsigned i=0; i<g.num_vertex; i++)

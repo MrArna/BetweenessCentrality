@@ -32,10 +32,14 @@ int main(int argc, char *argv[])
 	g.print_CSR();
 	std::vector<float> bc(g.num_vertex,0);
 
-	std::vector<unsigned> Q_curr;
-	std::vector<unsigned> Q_next;
-	std::vector<unsigned> S;
-	std::vector<unsigned> ends;
+	std::vector<unsigned> Q_curr(g.num_vertex,0);
+	unsigned Q_curr_len = 0;
+	std::vector<unsigned> Q_next(g.num_vertex,0);
+	unsigned Q_next_len = 0;
+	std::vector<unsigned> S(g.num_vertex,0);
+	unsigned S_len = 0;
+	std::vector<unsigned> ends(g.num_vertex,0);
+	unsigned ends_len = 0;
 
 	unsigned depth =0;
 	
@@ -53,29 +57,34 @@ int main(int argc, char *argv[])
 		{
 			if(v == source)
 			{
-				d.at(v) = 0;
-				sigma.at(v) = 1;
+				d[v] = 0;
+				sigma[v] = 1;
 			}
 			else
 			{
-				d.at(v) = UINT_MAX;
-				sigma.at(v) = 0;
+				d[v] = UINT_MAX;
+				sigma[v] = 0;
 			}
+			delta[v] = 0;
 		}
-		#pragma omp barrier
-		Q_curr.push_back(source);
-		S.push_back(source);
-		ends.push_back(0);
-		ends.push_back(1);
+		Q_curr[0] = source;
+		Q_curr_len = 1;
+		Q_next_len = 0;
+		S[0] = source;
+		S_len = 1;
+		ends[0] = 1;
+		ends[1] = 1;
+		ends_len = 2;
+		depth = 0;
 		
 
 		//Work efficient shortest path calculation
 		while (true)
 		{
 			#pragma omp parallel for shared(Q_next) shared(Q_curr) shared(d) shared(sigma)
-			for(unsigned tid = 0; tid < Q_curr.size(); tid++)
+			for(unsigned tid = 0; tid < Q_curr_len; tid++)
 			{
-				unsigned v = Q_curr.at(tid);
+				unsigned v = Q_curr[tid];
 				for(unsigned j=g.R[v]; j<g.R[v+1]; j++) //for each neighbor of v
 				{	
 					unsigned w = g.C[j];
@@ -84,7 +93,8 @@ int main(int argc, char *argv[])
 					{
 						if(d[w] == UINT_MAX)
 						{
-							Q_next.push_back(w);
+							Q_next[Q_next_len] = w;
+							Q_next_len++;
 							d[w] = d[v]+1;
 						}
 					}
@@ -97,24 +107,28 @@ int main(int argc, char *argv[])
 				}
 			}
 			#pragma omp barrier
-			if(Q_next.size() == 0)
+			if(Q_next_len == 0)
 			{
-				depth = d[S.at(S.size()-1)]-1;
+				depth = d[S[S_len-1]]-1;
 				break;
 			}
-			Q_curr.clear();
-			#pragma omp parallel for
-			for(unsigned tid = 0; tid < Q_next.size(); tid++)
+			else
 			{
-				Q_curr.push_back(Q_next.at(tid));
-				S.push_back(Q_next.at(tid));
-			}
-			#pragma omp barrier
-			ends.push_back(ends.back() + Q_next.size());
-			Q_next.clear();
-			#pragma omp barrier
+				#pragma omp parallel for
+				for(unsigned tid = 0; tid < Q_next_len; tid++)
+				{
+					Q_curr[tid] = Q_next[tid];
+					S[tid + S_len] = Q_next[tid];
+				}
+				#pragma omp barrier
+				ends[ends_len] = ends[ends_len-1] + Q_next_len;
+				ends_len++;
+				Q_curr_len = Q_next_len;
+				S_len = S_len + Q_next_len;
+				Q_next_len = 0;
+				#pragma omp barrier
+			}	
 		}
-		#pragma omp barrier
 
 		std::cout << "-------------> Breadth first completed for source " << source <<  "<----------" << std::endl;
 		for(unsigned i = 0; i < g.num_vertex; i++)

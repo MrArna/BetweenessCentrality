@@ -67,6 +67,7 @@ int main(int argc, char *argv[])
 
 
 		std::set<unsigned long long> source_vertices;
+		//source_vertices.insert(3);
 		Graph *graph = new Graph();
 		Graph g = *graph;
 		g.parse_edgelist(argv[1]);
@@ -74,6 +75,8 @@ int main(int argc, char *argv[])
 		std::vector<float> bc(g.num_vertex,0);
 		int end = source_vertices.empty() ? g.num_vertex : source_vertices.size();
 		std::set<unsigned long long>::iterator it = source_vertices.begin();
+
+
 
 		//#pragma omp parallel for
 		for(int k=0; k<end; k++)
@@ -115,7 +118,11 @@ int main(int argc, char *argv[])
 				}
 				#pragma omp barrier
 			}
-
+			std::cout << "-------------> Breadth first completed for source " << k <<  "<----------" << std::endl;
+			for(unsigned i = 0; i < g.num_vertex; i++)
+			{
+				std::cout << "sigma[" << i << "] = "  << sigma[i]  << " || delta[" << i << "] = "  << delta[i]  << std::endl;
+			}	
 
 			while(!S.empty())
 			{

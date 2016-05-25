@@ -62,13 +62,14 @@ int main(int argc, char *argv[])
 				sigma.at(v) = 0;
 			}
 		}
+		#pragma omp barrier
 		Q_curr.push_back(source);
 		S.push_back(source);
 		ends.push_back(0);
 		ends.push_back(1);
-		#pragma omp barrier
+		
 
-		//Work efficilen shortest path calculation
+		//Work efficient shortest path calculation
 		while (true)
 		{
 			#pragma omp parallel for shared(Q_next) shared(Q_curr) shared(d) shared(sigma)
@@ -109,15 +110,19 @@ int main(int argc, char *argv[])
 				S.push_back(Q_next.at(tid));
 			}
 			#pragma omp barrier
+			ends.push_back(ends.back() + Q_next.size());
 			Q_next.clear();
-			ends.push_back(S.size());
 			#pragma omp barrier
 		}
 		#pragma omp barrier
 
-		std::cout << "------> Breadth first completed. ends.size = " << ends.size() << " S.size = " << S.size() << std::endl;	
+		std::cout << "-------------> Breadth first completed for source " << source <<  "<----------" << std::endl;
+		for(unsigned i = 0; i < g.num_vertex; i++)
+		{
+				std::cout << "sigma[" << i << "] = "  << sigma[i]  << " || delta[" << i << "] = "  << delta[i]  << std::endl;
+		}	
 		//Dependency accumulation
-		while(depth > 0)
+		/*while(depth > 0)
 		{	
 			#pragma omp parallel for shared(d) shared(delta)
 			for(unsigned tid = ends[depth]; tid < ends[depth+1]; tid++)
@@ -131,7 +136,7 @@ int main(int argc, char *argv[])
 					if(d[v] == (d[w]+1))
 					{
 						dsw += (sw/(float)sigma[v])*(1+delta[v]);
-						std::cout << "d[v] = " << d[v] << " || d[w] = " << d[w] << " || sigma[v] = " << sigma[v] << std::endl; 
+						//std::cout << "d[v] = " << d[v] << " || d[w] = " << d[w] << " || sigma[v] = " << sigma[v] << std::endl; 
 					}
 				}
 				delta[w] = dsw;
@@ -141,12 +146,35 @@ int main(int argc, char *argv[])
 			depth--;
 		}
 
+		for(unsigned i = 0; i < g.num_vertex; i++)
+		{
+			//std::cout << "delta[" << i << "] = "  << delta[i]  << std::endl;
+		}	
+
 		for (unsigned i = 0; i < g.num_vertex; i++)
 		{
-			std::cout << "sigma[" << i << "] = " << sigma[i] << std::endl; 
-			bc[source] += delta[i];
-		}
+			//std::cout << "sigma[" << i << "] = " << sigma[i] << std::endl; 
+			bc[source] += i == source ? 0 : delta[i];
+		}*/
 
+		while(!S.empty())
+		{
+			unsigned w = S.back();
+			S.pop_back();
+			for(unsigned j=g.R[w]; j<g.R[w+1]; j++)
+			{	
+				unsigned v = g.C[j];
+				if(d[v] == (d[w] - 1))
+				{
+					delta[v] += (sigma[v]/(float)sigma[w])*(1+delta[w]);
+				}
+			}
+			if(w != source)
+			{
+				bc[w] += delta[w];
+			}
+		}
+		#pragma omp barrier
 		ends.clear();
 		S.clear();
 		Q_curr.clear();

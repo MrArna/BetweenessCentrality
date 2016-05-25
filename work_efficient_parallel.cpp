@@ -6,7 +6,7 @@
 #include <fstream>
 #include <algorithm>
 #include <iostream>
-#include "graph.hpp"
+#include "Graph.hpp"
 #include <vector>
 #include <queue>
 #include <stack>

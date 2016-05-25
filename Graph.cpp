@@ -1,4 +1,4 @@
-#include "graph.hpp"
+#include "Graph.hpp"
 
 
 void Graph::parse_edgelist(char *file)

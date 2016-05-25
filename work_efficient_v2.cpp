@@ -41,10 +41,10 @@ int main(int argc, char *argv[])
 	
 	std::vector<unsigned> d(g.num_vertex, UINT_MAX);
 	std::vector<unsigned> sigma(g.num_vertex,0);
-	std::vector<unsigned> delta;
+	std::vector<float> delta(g.num_vertex,0);
 
 
-	for( unsigned source = 4; source < 5; source++)
+	for(unsigned source = 0; source < g.num_vertex; source++)
 	{
 		
 		//Initialization
@@ -77,22 +77,22 @@ int main(int argc, char *argv[])
 				unsigned v = Q_curr.at(tid);
 				for(unsigned j=g.R[v]; j<g.R[v+1]; j++) //for each neighbor of v
 				{	
+					unsigned w = g.C[j];
+					//std::cout << "Node analyzed is " << v << " , its neighbor is: " << w << " analyzed by " << omp_get_thread_num() << std::endl;
 					#pragma omp critical(compareAndSwap)
 					{
-						unsigned w = g.C[j];
-						std::cout << "Node analyzed is " << v << " , its neighbor is: " << w << " analyzed by " << omp_get_thread_num() << std::endl;
 						if(d[w] == UINT_MAX)
 						{
 							Q_next.push_back(w);
 							d[w] = d[v]+1;
 						}
-						if(d[w] == (d[v]+1))
-						{
-							sigma[w] += sigma[v];
-						}
-						std::cout << "Node analyzed is " << v << " , its d is: " << d[w] << " analyzed by " << omp_get_thread_num() << std::endl;
-
-					}	
+					}
+					if(d[w] == (d[v]+1))
+					{
+						#pragma omp atomic
+						sigma[w] += sigma[v];
+					}
+					//std::cout << "Node analyzed is " << v << " , its d is: " << d[w] << " analyzed by " << omp_get_thread_num() << std::endl;
 				}
 			}
 			#pragma omp barrier
@@ -115,11 +115,7 @@ int main(int argc, char *argv[])
 		}
 		#pragma omp barrier
 
-		std::cout << "------> Breadth first completed. ends.size = " << ends.size() << " depth = " << depth << std::endl;	
-		for(unsigned i=0; i<g.num_vertex; i++)
-		{
-			std::cout << "d[" << i << "] = " << d[i] << std::endl;
-		}	
+		std::cout << "------> Breadth first completed. ends.size = " << ends.size() << " S.size = " << S.size() << std::endl;	
 		//Dependency accumulation
 		while(depth > 0)
 		{	
@@ -127,13 +123,16 @@ int main(int argc, char *argv[])
 			for(unsigned tid = ends[depth]; tid < ends[depth+1]; tid++)
 			{
 				unsigned w = S[tid];
-				unsigned dsw = 0;
+				float dsw = 0.0f;
 				unsigned sw = sigma.at(w);
 				for(unsigned j=g.R[w]; j<g.R[w+1]; j++) //for each neighbor of v
 				{	
 					unsigned v = g.C[j];
 					if(d[v] == (d[w]+1))
+					{
 						dsw += (sw/(float)sigma[v])*(1+delta[v]);
+						std::cout << "d[v] = " << d[v] << " || d[w] = " << d[w] << " || sigma[v] = " << sigma[v] << std::endl; 
+					}
 				}
 				delta[w] = dsw;
 
@@ -144,8 +143,14 @@ int main(int argc, char *argv[])
 
 		for (unsigned i = 0; i < g.num_vertex; i++)
 		{
+			std::cout << "sigma[" << i << "] = " << sigma[i] << std::endl; 
 			bc[source] += delta[i];
 		}
+
+		ends.clear();
+		S.clear();
+		Q_curr.clear();
+		delta.clear();
 	}
 	#pragma omp barrier
 	for(unsigned i=0; i<g.num_vertex; i++)

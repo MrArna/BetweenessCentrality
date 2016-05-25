@@ -137,11 +137,15 @@ int main(int argc, char *argv[])
 						if(d[v] == (d[w] - 1))
 						{
 							delta[v] += (sigma[v]/(float)sigma[w])*(1+delta[w]);
+							std::cout << "delta[v] = " << delta[v] << " \tv = " << v << " \tw = " << w << std::endl;
+
 						}
 					//}
 				}
 				//#pragma omp barrier	
 				
+				std::cout << "---------- new w ----------" << std::endl;
+
 				if(w != i)
 				{
 					bc[w] += delta[w];

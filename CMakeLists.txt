@@ -24,6 +24,9 @@ add_executable (we_serial
 add_executable (we_parallel 
 	work_efficient_parallel.cpp)
 
+add_executable (ep 
+	edge_parallel.cpp)
+
 target_link_libraries(graph_parser
 	graph_lib)
 
@@ -31,4 +34,7 @@ target_link_libraries(we_serial
 	graph_lib)
 
 target_link_libraries(we_parallel
+	graph_lib)
+
+target_link_libraries(ep
 	graph_lib)

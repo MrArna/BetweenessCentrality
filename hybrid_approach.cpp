@@ -87,8 +87,9 @@ int main(int argc, char *argv[])
 		ends[1] = 1;
 		ends_len = 2;
 		depth = 0;
-		selectedStrategy = WORK_EFFICIENT;
+		selectedStrategy = EDGE_PARALLEL;
 		done = false;
+		current_depth = 0;
 		
 
 		//Work efficient shortest path calculation

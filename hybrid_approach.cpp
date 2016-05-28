@@ -24,12 +24,21 @@
 int main(int argc, char *argv[])
 {
 
-	if(argc != 2)
+	unsigned alpha, beta;
+
+	if(argc != 4)
 	{
-		std::cout << "Command usage: " << argv[0] << " ./GRAPH_PATH" << std::endl;
+		std::cout << "Command usage: " << argv[0] << " ./GRAPH_PATH alpha_value beta_value" << std::endl;
 		return 0;
 	}
 
+	alpha = atoi(argv[2]);
+	beta = atoi(argv[3]);
+	if(alpha < 1 || beta < 1)
+	{
+		std::cout << "ALPHA and BETA values must be greater than 0 " << std::endl;
+		return 0;
+	}
 	srand(time(NULL));
 	
 	// Data structure declararion
@@ -55,6 +64,7 @@ int main(int argc, char *argv[])
 	std::vector<unsigned> sigma(g.num_vertex,0);
 	std::vector<float> delta(g.num_vertex,0);
 	unsigned selectedStrategy = 0;
+
 
 	bool done = false;
 
@@ -95,9 +105,9 @@ int main(int argc, char *argv[])
 		//Work efficient shortest path calculation
 		while (!done)
 		{
-			if(Q_delta > ALPHA)
+			if(Q_delta > alpha/*ALPHA*/)
 			{
-				if( current_depth % 2 /*Q_next_len > BETA*/)
+				if( /*current_depth % 2*/ Q_next_len > beta /*BETA*/)
 				{
 					selectedStrategy = EDGE_PARALLEL;
 					std::cout << "-----> Selected EDGE_PARALLEL [source = " << source << ", depth = " << depth << "]" << std::endl;
@@ -105,7 +115,7 @@ int main(int argc, char *argv[])
 				else
 				{
 					selectedStrategy = WORK_EFFICIENT;
-					std::cout << "-----> Selected WORK_PARALLEL [source = " << source << ", depth = " << depth << "]" << std::endl;
+					std::cout << "-----> Selected WORK_EFFICIENT [source = " << source << ", depth = " << depth << "]" << std::endl;
 
 				}
 			}

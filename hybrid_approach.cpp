@@ -13,8 +13,8 @@
 #include <set>
 #include <math.h>
 
-#define ALPHA 768
-#define BETA 512
+#define ALPHA 0 //768
+#define BETA  512
 
 #define EDGE_PARALLEL 1
 #define WORK_EFFICIENT 2
@@ -90,14 +90,14 @@ int main(int argc, char *argv[])
 		selectedStrategy = EDGE_PARALLEL;
 		done = false;
 		current_depth = 0;
-		
+		#pragma omp barrier
 
 		//Work efficient shortest path calculation
 		while (!done)
 		{
 			if(Q_delta > ALPHA)
 			{
-				if(Q_next_len > BETA)
+				if( current_depth % 2 /*Q_next_len > BETA*/)
 				{
 					selectedStrategy = EDGE_PARALLEL;
 					std::cout << "-----> Selected EDGE_PARALLEL [source = " << source << ", depth = " << depth << "]" << std::endl;

@@ -27,6 +27,9 @@ add_executable (we_parallel
 add_executable (ep 
 	edge_parallel.cpp)
 
+add_executable (work_efficient_hybrid
+	hybrid_approach.cpp)
+
 target_link_libraries(graph_parser
 	graph_lib)
 
@@ -37,4 +40,7 @@ target_link_libraries(we_parallel
 	graph_lib)
 
 target_link_libraries(ep
+	graph_lib)
+
+target_link_libraries(work_efficient_hybrid
 	graph_lib)

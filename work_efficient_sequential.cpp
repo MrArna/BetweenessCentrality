@@ -14,7 +14,7 @@
 
 
 
-int main(int argc, char *argv[])
+    int main(int argc, char *argv[])
 {
 
 	if(argc != 2)
@@ -90,7 +90,6 @@ int main(int argc, char *argv[])
 			sigma[i] = 1;
 			std::vector<float> delta(g.num_vertex,0);
 			Q.push(i);
-			bool done = false;
 			unsigned long long current_depth = 0;
 
 
@@ -103,7 +102,7 @@ int main(int argc, char *argv[])
 				S.push(v);
 
 				//#pragma omp parallel for
-				for(int j=g.R[v]; j<g.R[v+1]; j++)
+				for(unsigned int j=g.R[v]; j<g.R[v+1]; j++)
 				{
 					int w = g.C[j];
 					if(d[w] == INT_MAX)
@@ -129,7 +128,7 @@ int main(int argc, char *argv[])
 				int w = S.top();
 				S.pop();
 				//#pragma omp parallel for
-				for(int j=g.R[w]; j<g.R[w+1]; j++)
+				for(unsigned int j=g.R[w]; j<g.R[w+1]; j++)
 				{
 					//#pragma omp critical(compareAndSwap)
 					//{

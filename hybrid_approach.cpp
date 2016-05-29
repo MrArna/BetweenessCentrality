@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 	Graph *graph = new Graph();
 	Graph g = *graph;
 	g.parse_edgelist(argv[1]);
-	g.print_CSR();
+	//g.print_CSR();
 	std::vector<float> bc(g.num_vertex,0);
 
 	std::vector<unsigned> Q_curr(g.num_vertex,0);
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 		ends[1] = 1;
 		ends_len = 2;
 		depth = 0;
-		selectedStrategy = EDGE_PARALLEL;
+		selectedStrategy = WORK_EFFICIENT;
 		done = false;
 		current_depth = 0;
 		#pragma omp barrier
@@ -110,12 +110,12 @@ int main(int argc, char *argv[])
 				if( /*current_depth % 2*/ Q_next_len > beta /*BETA*/)
 				{
 					selectedStrategy = EDGE_PARALLEL;
-					std::cout << "-----> Selected EDGE_PARALLEL [source = " << source << ", depth = " << depth << "]" << std::endl;
+					std::cout << "-----> Selected EDGE_PARALLEL [source = " << source << ", current_depth = " << current_depth << "]" << std::endl;
 				}
 				else
 				{
 					selectedStrategy = WORK_EFFICIENT;
-					std::cout << "-----> Selected WORK_EFFICIENT [source = " << source << ", depth = " << depth << "]" << std::endl;
+					std::cout << "-----> Selected WORK_EFFICIENT [source = " << source << ", current_depth = " << current_depth << "]" << std::endl;
 
 				}
 			}
@@ -206,11 +206,11 @@ int main(int argc, char *argv[])
 
 		}
 		depth = d[S[S_len-1]]-1;
-		std::cout << "-------------> Breadth first completed for source " << source <<  "<----------" << std::endl;
-		for(unsigned i = 0; i < g.num_vertex; i++)
+		std::cout << "-------------> Breadth first completed for source " << source << std::endl;
+		/*for(unsigned i = 0; i < g.num_vertex; i++)
 		{
 				std::cout << "sigma[" << i << "] = "  << sigma[i]  << " || d[" << i << "] = "  << d[i]  << std::endl;
-		}	
+		}*/	
 		//Dependency accumulation
 		while(depth > 0)
 		{	
@@ -226,14 +226,14 @@ int main(int argc, char *argv[])
 					if(d[v] == (d[w]+1))
 					{
 						dsw += (sw/(float)sigma[v])*(1+delta[v]);
-						std::cout << "[thread " << omp_get_thread_num() << "] dsw = " << dsw << " \tv = " << v << " \tw = " << w << std::endl;
+						//std::cout << "[thread " << omp_get_thread_num() << "] dsw = " << dsw << " \tv = " << v << " \tw = " << w << std::endl;
 						//std::cout << "d[v] = " << d[v] << " || d[w] = " << d[w] << " || sigma[v] = " << sigma[v] << std::endl; 
 					}
 				}
 				delta[w] = dsw;
 			}
 			#pragma omp barrier
-			std::cout << "---------- new depth ----------" << std::endl;
+			//std::cout << "---------- new depth ----------" << std::endl;
 			depth--;
 		}
 

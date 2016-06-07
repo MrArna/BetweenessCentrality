@@ -26,7 +26,7 @@ void Graph::parse_edgelist(char *file)
 
 		std::vector<std::string> splitvec;
 		boost::split(splitvec,line,boost::is_any_of(" \t"),boost::token_compress_on);
-	
+	/*
 		if(splitvec.size() != 2)
 		{
 			std::cerr << "Warning: Found a row that does not represent an edge or comment." << std::endl;
@@ -37,8 +37,8 @@ void Graph::parse_edgelist(char *file)
 			}
 			exit(-1);
 		}
-
-		for(unsigned i=0; i<splitvec.size(); i++)
+	*/
+		for(unsigned i=0; i< 2 && i<splitvec.size(); i++)
 		{
 			vertices.insert(splitvec[i]);
 		}
@@ -74,6 +74,7 @@ void Graph::parse_edgelist(char *file)
 		}
 		else
 		{
+			//std::cout << itf->first << " " << itf->second << " " << itc->first << " " << itc->second << std::endl;
 			if(itf->second == itc->second)
 			{
 				std::cerr << "Error: self edge! " << itf->second << " -> " << itc->second << std::endl;

@@ -12,10 +12,12 @@
 #include <stack>
 #include <set>
 
+#include <sys/time.h>
 
 
 int main(int argc, char *argv[])
 {
+	struct timeval start, end;
 
 	if(argc != 2)
 	{
@@ -24,12 +26,16 @@ int main(int argc, char *argv[])
 	}
 
 	srand(time(NULL));
-	
+		
 	// Data structure declararion
 	Graph *graph = new Graph();
 	Graph g = *graph;
 	g.parse_edgelist(argv[1]);
-	g.print_CSR();
+	//g.print_CSR();
+
+	//take initial time
+	gettimeofday(&start, NULL);
+
 	std::vector<float> bc(g.num_vertex,0);
 
 	std::vector<unsigned> Q_curr(g.num_vertex,0);
@@ -130,11 +136,11 @@ int main(int argc, char *argv[])
 			}	
 		}
 
-		std::cout << "-------------> Breadth first completed for source " << source <<  "<----------" << std::endl;
-		for(unsigned i = 0; i < g.num_vertex; i++)
+		//std::cout << "-------------> Breadth first completed for source " << source <<  "<----------" << std::endl;
+		/*for(unsigned i = 0; i < g.num_vertex; i++)
 		{
 				std::cout << "sigma[" << i << "] = "  << sigma[i]  << " || d[" << i << "] = "  << d[i]  << std::endl;
-		}	
+		}*/	
 		//Dependency accumulation
 		while(depth > 0)
 		{	
@@ -150,22 +156,22 @@ int main(int argc, char *argv[])
 					if(d[v] == (d[w]+1))
 					{
 						dsw += (sw/(float)sigma[v])*(1+delta[v]);
-						std::cout << "[thread " << omp_get_thread_num() << "] dsw = " << dsw << " \tv = " << v << " \tw = " << w << std::endl;
-						//std::cout << "d[v] = " << d[v] << " || d[w] = " << d[w] << " || sigma[v] = " << sigma[v] << std::endl; 
+						//std::cout << "[thread " << omp_get_thread_num() << "] dsw = " << dsw << " \tv = " << v << " \tw = " << w << std::endl;
+						////std::cout << "d[v] = " << d[v] << " || d[w] = " << d[w] << " || sigma[v] = " << sigma[v] << std::endl; 
 					}
 				}
 				delta[w] = dsw;
 			}
 			#pragma omp barrier
-			std::cout << "---------- new depth ----------" << std::endl;
+			//std::cout << "---------- new depth ----------" << std::endl;
 			depth--;
 		}
-
+/*
 		for(unsigned i = 0; i < g.num_vertex; i++)
 		{
 			//std::cout << "delta[" << i << "] = "  << delta[i]  << std::endl;
 		}	
-
+*/
 		for (unsigned i = 0; i < g.num_vertex; i++)
 		{
 			//std::cout << "sigma[" << i << "] = " << sigma[i] << std::endl; 
@@ -179,6 +185,11 @@ int main(int argc, char *argv[])
 	}
 
 	g.print_BC_scores(bc,NULL);
+
+	gettimeofday(&end, NULL);
+
+	double elapsed = ((double)((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)))/1000000;
+	printf("time %lf\n", elapsed);
 
 	return 1;
 }

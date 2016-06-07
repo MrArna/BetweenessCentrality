@@ -19,12 +19,13 @@
 #define EDGE_PARALLEL 1
 #define WORK_EFFICIENT 2
 
-
+#include <sys/time.h>
 
 int main(int argc, char *argv[])
 {
 
 	unsigned alpha, beta;
+	struct timeval start, end;
 
 	if(argc != 4)
 	{
@@ -46,6 +47,10 @@ int main(int argc, char *argv[])
 	Graph g = *graph;
 	g.parse_edgelist(argv[1]);
 	//g.print_CSR();
+
+	//take initial time
+	gettimeofday(&start, NULL);
+
 	std::vector<float> bc(g.num_vertex,0);
 
 	std::vector<unsigned> Q_curr(g.num_vertex,0);
@@ -206,7 +211,7 @@ int main(int argc, char *argv[])
 
 		}
 		depth = d[S[S_len-1]]-1;
-		std::cout << "-------------> Breadth first completed for source " << source << std::endl;
+		//std::cout << "-------------> Breadth first completed for source " << source << std::endl;
 		/*for(unsigned i = 0; i < g.num_vertex; i++)
 		{
 				std::cout << "sigma[" << i << "] = "  << sigma[i]  << " || d[" << i << "] = "  << d[i]  << std::endl;
@@ -255,6 +260,11 @@ int main(int argc, char *argv[])
 	}
 
 	g.print_BC_scores(bc,NULL);
+
+	gettimeofday(&end, NULL);
+
+	double elapsed = ((double)((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)))/1000000;
+	printf("time %lf\n", elapsed);
 
 	return 1;
 }

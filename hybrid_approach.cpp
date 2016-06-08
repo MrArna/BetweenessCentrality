@@ -264,7 +264,8 @@ int main(int argc, char *argv[])
 	gettimeofday(&end, NULL);
 
 	double elapsed = ((double)((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)))/1000000;
-	printf("time %lf\n", elapsed);
+	//printf("time %lf\n", elapsed);
+	std::cerr << "time " << elapsed << std::endl;
 
 	return 1;
 }

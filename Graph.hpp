@@ -31,6 +31,13 @@ public:
 
 	}
 
+	~Graph()
+	{
+		delete R;
+		delete C;
+		delete F;
+	}
+
 	void parse_edgelist(char *file);
 
 	void print_R();

@@ -27,8 +27,8 @@ int main(int argc, char *argv[])
 
 
 	// Data structure declararion
-	Graph *graph = new Graph();
-	Graph g = *graph;
+	//Graph *graph = new Graph();
+	Graph g;// = *graph;
 	g.parse_edgelist(argv[1]);
 	//g.print_CSR();
 
@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
 	//printf("time %lf\n", elapsed);
 	std::cerr << "time " << elapsed << std::endl;
 	
-	return 1;
+	return 0;
 }
 
 

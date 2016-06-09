@@ -12,6 +12,7 @@
 #include <stack>
 #include <set>
 
+//#include <stdatomic.h>
 #include <sys/time.h>
 
 
@@ -28,8 +29,8 @@ int main(int argc, char *argv[])
 	srand(time(NULL));
 		
 	// Data structure declararion
-	Graph *graph = new Graph();
-	Graph g = *graph;
+	//Graph *graph = new Graph();
+	Graph g;// = *graph;
 	g.parse_edgelist(argv[1]);
 	//g.print_CSR();
 
@@ -95,10 +96,31 @@ int main(int argc, char *argv[])
 				{	
 					unsigned w = g.C[j];
 					//std::cout << "Node analyzed is " << v << " , its neighbor is: " << w << " analyzed by " << omp_get_thread_num() << std::endl;
+
+					//intel atomic compare and swap
+					if (__sync_bool_compare_and_swap(&d[w], UINT_MAX, (d[v]+1)))
+					{
+						//printf("%u\n", d[w]);
+						unsigned int temp = __sync_fetch_and_add(&Q_next_len, 1);
+						Q_next[temp] = w;
+						
+						//__sync_fetch_and_add(&(d[w]), d[v] + 1);
+
+					}
+					if(d[w] == (d[v]+1))
+					{
+						__sync_fetch_and_add(&(sigma[w]), sigma[v]);
+						//#pragma omp atomic
+						//sigma[w] += sigma[v];
+					}
+
+/*
+					//synchronized version of the thing
 					#pragma omp critical(compareAndSwap)
 					{
 						if(d[w] == UINT_MAX)
 						{
+							printf("%u\n", d[w]);
 							Q_next[Q_next_len] = w;
 							Q_next_len++;
 							d[w] = d[v]+1;
@@ -109,6 +131,8 @@ int main(int argc, char *argv[])
 						#pragma omp atomic
 						sigma[w] += sigma[v];
 					}
+*/
+
 					//std::cout << "Node analyzed is " << v << " , its d is: " << d[w] << " analyzed by " << omp_get_thread_num() << std::endl;
 				}
 			}

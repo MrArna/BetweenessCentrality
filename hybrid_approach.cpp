@@ -136,19 +136,17 @@ int main(int argc, char *argv[])
 						{	
 							unsigned w = g.C[j];
 							//std::cout << "Node analyzed is " << v << " , its neighbor is: " << w << " analyzed by " << omp_get_thread_num() << std::endl;
-							#pragma omp critical(compareAndSwap)
+							//intel atomic compare and swap
+							if (__sync_bool_compare_and_swap(&d[w], UINT_MAX, (d[v]+1)))
 							{
-								if(d[w] == UINT_MAX)
-								{
-									Q_next[Q_next_len] = w;
-									Q_next_len++;
-									d[w] = d[v]+1;
-								}
+								//printf("%u\n", d[w]);
+								unsigned int temp = __sync_fetch_and_add(&Q_next_len, 1);
+								Q_next[temp] = w;
+
 							}
 							if(d[w] == (d[v]+1))
 							{
-								#pragma omp atomic
-								sigma[w] += sigma[v];
+								__sync_fetch_and_add(&(sigma[w]), sigma[v]);
 							}
 							//std::cout << "Node analyzed is " << v << " , its d is: " << d[w] << " analyzed by " << omp_get_thread_num() << std::endl;
 						}
